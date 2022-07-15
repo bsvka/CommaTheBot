@@ -11,8 +11,12 @@ class Job_The(AbstractBotJob):
 
     def __init__(self):
         super().__init__()
+        articles = [
+            '[Tt]he',
+            '[Dd]er', '[Dd]ie', '[Dd]as',
+        ]
 
-        self.pattern = re.compile(r"^([\w ,]*), ?([Tt]he)$")
+        self.pattern = re.compile(rf"^([\w ,]*), ?({'|'.join(articles)})$")
 
     def needs_fixing(self, edition_title: str) -> bool:
         if edition_title == None: return False # no title given
