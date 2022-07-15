@@ -7,17 +7,20 @@ import gzip
 import re
 
 class Job_The(AbstractBotJob):
-    @staticmethod
-    def needs_fixing( edition_title: str ) -> bool:
-        if edition_title == None: return False
+    pattern = None
 
-        match = re.search("^[\w ,]*, ?[Tt]he$", edition_title)
+    def __init__(self):
+        super().__init__()
 
-        return False if(match == None) else True
+        self.pattern = re.compile(r"^([\w ,]*), ?([Tt]he)$")
 
-    @staticmethod
-    def fix_title( edition_title: str ) -> str:
-        match = re.search("^([\w ,]*), ?([Tt]he)$", edition_title)
+    def needs_fixing(self, edition_title: str) -> bool:
+        if edition_title == None: return False # no title given
+
+        return True if(self.pattern.search(edition_title)) else False
+
+    def fix_title(self, edition_title: str) -> str:
+        match = self.pattern.search(edition_title)
 
         return " ".join([match.group(2), match.group(1)])
 
@@ -30,7 +33,7 @@ class Job_The(AbstractBotJob):
                 row, json_data = self.process_row(row)
                 if not ( json_data['type']['key'] == '/type/edition' or json_data['type']['key'] == '/type/work' ):
                     continue
-                if not self.needs_fixing(json_data.get('title')): # .get() to avoid KeyError
+                if not self.needs_fixing(json_data.get('title')):
                     continue
 
                 # the database may have changed since the dump was created, so call the OpenLibrary API and check again
