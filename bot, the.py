@@ -14,9 +14,8 @@ class Job_The(AbstractBotJob):
         articles = [
             '[Tt]he',
             '[Dd]er', '[Dd]ie', '[Dd]as',
-            '[Ll]e', '[Ll]a',
+            '[Ll]e', '[Ll]a', '[Ee]l',
             '[Ll]os', '[Ll]as', '[Ll]es',
-            '[Ii]ll', '[Ee]l',
         ]
 
         self.pattern = re.compile(rf"^([\w ,]*), ?({'|'.join(articles)})$")
