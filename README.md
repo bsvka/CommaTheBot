@@ -13,30 +13,7 @@ Currently searches for the following articles (with starting upper- and lowercas
 | -------- | ----- | --------- |
 | 72819552 | 25430 | 0.0349219 |
 
-## install
+## running it
+You nedd `curl`, `zgrep` and `pv` installed on your system.
 
-1. Create a virtual env, copy the bot and cd into it
-
-   `python -m venv venv; cp CommaTheBot.py requirements.txt; cd venv`
-
-2. Activate it
-
-   `source bin/activate`
-
-3. Upgrade pip
-
-   `pip install --upgrade pip`
-
-4. Install requirements
-
-   `pip install -r requirements.txt`
-
-## uninstall
-
-1. Deactivate the venv and cd out of it
-
-   `deactivate; cd ..`
-
-2. Remove it
-
-   `rm -r venv`
+Start the `main.sh` file. It will set-up a venv, auto-install all dependencies into it, download the altest dump, pre-filter that and finally run the bot itself. All options you pass to `main.sh` will be passed to `CommaTheBot.py`. run `python CommaTheBot.py -h` to find out what options are available. You don't have to pass `--file|-f`.
