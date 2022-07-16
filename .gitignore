@@ -1,3 +1,4 @@
 openlibrary-client/
 logs/
 ol_dump*
+filtered_ol_dump*

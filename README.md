@@ -17,7 +17,7 @@ Currently searches for the following articles (with starting upper- and lowercas
 
 1. Create a virtual env, copy the bot and cd into it
 
-   `python -m venv venv; cp 'bot, the.py' requirements.txt; cd venv`
+   `python -m venv venv; cp CommaTheBot.py requirements.txt; cd venv`
 
 2. Activate it
 

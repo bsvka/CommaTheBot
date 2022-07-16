@@ -1,5 +1,5 @@
 # example invocation
-# python CommaTheBot.py --file ol_dump_2022-06-06.txt.gz --limit 1
+# python CommaTheBot.py --file filtered_ol_dump_2022-06-06.txt.gz --limit 1
 
 from olclient.bots import AbstractBotJob
 import copy
@@ -37,21 +37,20 @@ class CommaTheBotJob(AbstractBotJob):
         with gzip.open(self.args.file, 'rb') as file:
             for row in file:
                 row, json_data = self.process_row(row)
-                if not ( json_data['type']['key'] == '/type/edition' or json_data['type']['key'] == '/type/work' ):
-                    continue
-                if not self.needs_fixing(json_data.get('title')):
+                if not self.needs_fixing(json_data.get('title')): # .get() to avoid KeyError
                     continue
 
                 # the database may have changed since the dump was created, so call the OpenLibrary API and check again
                 olid = json_data['key'].split('/')[-1]
-                book = self.ol.Edition.get(olid) if json_data['type']['key'] == '/type/edition' else self.ol.Work.get(olid)
+                isEdition = json_data['type']['key'] == '/type/edition'
+                book = self.ol.Edition.get(olid) if isEdition else self.ol.Work.get(olid)
 
                 if not ( book.type['key'] == '/type/edition' or book.type['key'] == '/type/work' ):
                     continue # skip deleted books
                 if not self.needs_fixing(book.title):
                     continue
 
-                # this book needs editing, so fix it
+                # this book needs fixing
                 old_title = copy.deepcopy(book.title)
                 book.title = self.fix_title(book.title)
 
