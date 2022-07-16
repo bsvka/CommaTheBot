@@ -1,12 +1,12 @@
 # example invocation
-# python bot, the.py --file ol_dump_2022-06-06.txt.gz --limit 1
+# python CommaTheBot.py --file ol_dump_2022-06-06.txt.gz --limit 1
 
 from olclient.bots import AbstractBotJob
 import copy
 import gzip
 import re
 
-class Job_The(AbstractBotJob):
+class CommaTheBotJob(AbstractBotJob):
     pattern = None
 
     def __init__(self):
@@ -60,7 +60,7 @@ class Job_The(AbstractBotJob):
 
 
 if __name__ == "__main__":
-    job = Job_The()
+    job = CommaTheBotJob()
 
     try:
         job.run()
