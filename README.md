@@ -1,4 +1,4 @@
-# bot, the
+# CommaTheBot
 
 A bot intended to fix titles like "foo, the" by moving the "the" to the start ("the foo").
 
