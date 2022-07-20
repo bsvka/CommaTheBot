@@ -28,7 +28,7 @@ class CommaTheBotJob(AbstractBotJob):
     def fix_title(self, edition_title: str) -> str:
         match = self.pattern.search(edition_title)
 
-        return " ".join([match.group(2), match.group(1)])
+        return f"{match.group(2)} {match.group(1)}"
 
     def run(self) -> None:
         self.dry_run_declaration()
