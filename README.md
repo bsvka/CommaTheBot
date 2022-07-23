@@ -22,6 +22,6 @@ Start the `main.sh` file. It will set-up a venv, auto-install all dependencies i
 The detection of articles appended to the title with a comma is done via the below [regular expression](https://en.wikipedia.org/wiki/Regular_expression).
 
 As of 2022-07-20 the full pattern is the following:  
-`^([\\w ,]*), ?([Tt]he|[Dd]er|[Dd]ie|[Dd]as|[Ll]e|[Ll]a|[Ee]l|[Ll]os|[Ll]as|[Ll]es)$`
+`^([\\w ,]+), ?([Tt]he|[Dd]er|[Dd]ie|[Dd]as|[Ll]e|[Ll]a|[Ee]l|[Ll]os|[Ll]as|[Ll]es)$`
 
 Paste it into [regex101.com](https://regex101.com/) for a plain english explanation of how it works.
