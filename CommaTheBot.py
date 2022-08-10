@@ -59,6 +59,20 @@ def run(filtered_file: str):
             save(lambda: book.save(comment=comment))
 
 
+comment = 'foo, the -> the foo'
+articles = [
+    '[Tt]he',
+    '[Dd]er', '[Dd]ie', '[Dd]as',
+    '[Ll]e', '[Ll]a', '[Ee]l',
+    '[Ll]os', '[Ll]as', '[Ll]es',
+]
+pattern = re.compile(rf"^([\w ,]+), ?({'|'.join(articles)})$")
+logger, console_handler = ol_helper.setup_logger("CommaTheBot")
+
+Credentials = namedtuple('Credentials', ['username', 'password'])
+ol = OpenLibrary()
+#ol = OpenLibrary(credentials=Credentials("""""", """"""))
+
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='CommaTheBot')
     parser.add_argument('-f', '--file', help='Filtered OL dump to search in')
@@ -76,19 +90,5 @@ if __name__ == '__main__':
     dry_run = getattr(args, 'dry_run', None)
     limit = getattr(args, 'limit', None)
     changed = 0
-
-    comment = 'foo, the -> the foo'
-    articles = [
-        '[Tt]he',
-        '[Dd]er', '[Dd]ie', '[Dd]as',
-        '[Ll]e', '[Ll]a', '[Ee]l',
-        '[Ll]os', '[Ll]as', '[Ll]es',
-    ]
-    pattern = re.compile(rf"^([\w ,]+), ?({'|'.join(articles)})$")
-    logger, console_handler = ol_helper.setup_logger("CommaTheBot")
-
-    Credentials = namedtuple('Credentials', ['username', 'password'])
-    ol = OpenLibrary()
-    #ol = OpenLibrary(credentials=Credentials("""""", """"""))
 
     run(args.file)
