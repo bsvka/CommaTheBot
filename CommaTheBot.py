@@ -1,68 +1,94 @@
-# example invocation
-# python CommaTheBot.py --file filtered_ol_dump_2022-06-06.txt.gz --limit 1
+from olclient.bots import AbstractBotJob as ol_helper
+from olclient.openlibrary import OpenLibrary
+from collections import namedtuple
 
-from olclient.bots import AbstractBotJob
 import copy
 import gzip
 import re
-
-class CommaTheBotJob(AbstractBotJob):
-    pattern = None
-
-    def __init__(self):
-        super().__init__()
-        articles = [
-            '[Tt]he',
-            '[Dd]er', '[Dd]ie', '[Dd]as',
-            '[Ll]e', '[Ll]a', '[Ee]l',
-            '[Ll]os', '[Ll]as', '[Ll]es',
-        ]
-
-        self.pattern = re.compile(rf"^([\w ,]+), ?({'|'.join(articles)})$")
-
-    def needs_fixing(self, edition_title: str) -> bool:
-        if edition_title is None: return False # no title given
-
-        return True if(self.pattern.search(edition_title)) else False
-
-    def fix_title(self, edition_title: str) -> str:
-        match = self.pattern.search(edition_title)
-
-        return f"{match.group(2)} {match.group(1)}"
-
-    def run(self) -> None:
-        self.dry_run_declaration()
-
-        comment = 'foo, the -> the foo'
-        with gzip.open(self.args.file, 'rb') as file:
-            for row in file:
-                row, json_data = self.process_row(row)
-                if not self.needs_fixing(json_data.get('title')): # .get() to avoid KeyError
-                    continue
-
-                # the database may have changed since the dump was created, so call the OpenLibrary API and check again
-                olid = json_data['key'].split('/')[-1]
-                isEdition = json_data['type']['key'] == '/type/edition'
-                book = self.ol.Edition.get(olid) if isEdition else self.ol.Work.get(olid)
-
-                if not ( book.type['key'] == '/type/edition' or book.type['key'] == '/type/work' ):
-                    continue # skip deleted books
-                if not self.needs_fixing(book.title):
-                    continue
-
-                # this book needs fixing
-                old_title = copy.deepcopy(book.title)
-                book.title = self.fix_title(book.title)
-
-                self.logger.info(f'{olid}: "{old_title}" -> "{book.title}"')
-                self.save(lambda: book.save(comment=comment))
+import argparse
+import sys
 
 
-if __name__ == "__main__":
-    job = CommaTheBotJob()
+def save(save_fn) -> None: # olclient/bots.py
+    global changed
+    """
+    Modify behavior of OpenLibrary Client based on 'limit' and 'dry_run' parameters
+    :param save_fn: Save function of an OpenLibrary Client record (Work, Edition, Author)
+    """
+    if not dry_run:
+        logger.info(save_fn())
+    else:
+        logger.info('Modification not made because dry_run is True.')
+    changed += 1
+    if limit and changed >= limit:
+        logger.info('Modification limit reached. Exiting script.')
+        sys.exit()
 
-    try:
-        job.run()
-    except Exception as e:
-        job.logger.exception("")
-        raise e
+def needs_fixing(edition_title: str) -> bool:
+    if edition_title is None: return False # no title given
+
+    return True if(pattern.search(edition_title)) else False
+
+def fix_title(edition_title: str) -> str:
+    match = pattern.search(edition_title)
+
+    return f"{match.group(2)} {match.group(1)}"
+
+def run(filtered_file: str):
+    with gzip.open(filtered_file, 'rb') as file:
+        for row in file:
+            row, json_data = ol_helper.process_row(row)
+            if not needs_fixing(json_data.get('title')): # .get() to avoid KeyError
+                continue
+
+            # the database may have changed since the dump was created, so call the OpenLibrary API and check again
+            olid = json_data['key'].split('/')[-1]
+            isEdition = json_data['type']['key'] == '/type/edition'
+            book = ol.Edition.get(olid) if isEdition else ol.Work.get(olid)
+
+            if not ( book.type['key'] == '/type/edition' or book.type['key'] == '/type/work' ):
+                continue # skip deleted books
+            if not needs_fixing(book.title):
+                continue
+
+            # this book needs fixing
+            old_title = copy.deepcopy(book.title)
+            book.title = fix_title(book.title)
+
+            logger.info(f'{olid}: "{old_title}" -> "{book.title}"')
+            save(lambda: book.save(comment=comment))
+
+
+if __name__ == '__main__':
+    parser = argparse.ArgumentParser(description='CommaTheBot')
+    parser.add_argument('-f', '--file', help='Filtered OL dump to search in')
+    parser.add_argument('-l', '--limit', type=int, default=1,
+                                help='Limit number of edits performed on external data.'
+                                    'Set to zero to allow unlimited edits.')
+    parser.add_argument('-d', '--dry-run', type=ol_helper._str2bool, default=True,
+                                help='Execute the script without performing edits on external data.')
+
+    if len(sys.argv) == 1:
+        parser.print_help(sys.stderr)
+        sys.exit(1)
+
+    args = parser.parse_args()
+    dry_run = getattr(args, 'dry_run', None)
+    limit = getattr(args, 'limit', None)
+    changed = 0
+
+    comment = 'foo, the -> the foo'
+    articles = [
+        '[Tt]he',
+        '[Dd]er', '[Dd]ie', '[Dd]as',
+        '[Ll]e', '[Ll]a', '[Ee]l',
+        '[Ll]os', '[Ll]as', '[Ll]es',
+    ]
+    pattern = re.compile(rf"^([\w ,]+), ?({'|'.join(articles)})$")
+    logger, console_handler = ol_helper.setup_logger("CommaTheBot")
+
+    Credentials = namedtuple('Credentials', ['username', 'password'])
+    ol = OpenLibrary()
+    #ol = OpenLibrary(credentials=Credentials("""""", """"""))
+
+    run(args.file)
